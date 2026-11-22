@@ -1,0 +1,32 @@
+{
+  "manifest_version": 3,
+  "name": "Reticle",
+  "version": "0.1.0",
+  "description": "Hands the tab you are on to Reticle, so an agent can read and act on the page.",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwaP7tKs7LRTh+QJjK1MKPnllHjBpFohbnGg2EEenVkGVZ3VcXifDqnVoECGnShq2butboSsY+AxR2fXrCoBeq4MiAtXNS7CesvRZg3VcX8+77ukjlh8sg2/wrUD+4ku2Mt6Cee7GgRTDwNSD1zC1lXjS7I15HJT40RG62PtGt+1LDy5xQSNqX933WD1OC4F9EZXiAEqIp6icFZ5IgLkW2iVxqaGYynjKVlcJEBFod+5Ys8QJ6DJk6Fr6GtPnfwylPrtI4AMONYcyS/NW8jCpx6Y+Kl3nMvuyz5UvFNpTgzI3AD3BaUMVeAm2tRRWQt0Gc924jHXrACRmp3DnXsVfowIDAQAB",
+  "minimum_chrome_version": "111",
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "nativeMessaging",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Hand this tab to Reticle"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Alt+Shift+R"
+      },
+      "description": "Hand this tab to Reticle"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@reticlehq/web-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hands a tab of a real browser to Reticle, so an agent can read and act on the page.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "install-host": "node install.mjs",
+    "test:handoff": "node test/handoff.mjs"
+  },
+  "dependencies": {
+    "@reticlehq/browser": "^3.10.10"
+  }
+}
