@@ -24,16 +24,26 @@ node install.mjs --browser dia        # or chrome, or chromium
 Then load the `extension` folder once in each browser profile: open the extensions page, turn on
 developer mode, and choose "Load unpacked".
 
-`install.mjs` writes the native host's manifest into the browser's `NativeMessagingHosts` folder.
+`install.mjs` copies the native host to `~/Library/Application Support/Reticle/web-extension/`, and
+writes its manifest into the folder where the browser looks for native hosts. Two things that Dia
+showed:
+
+- Dia looks in Chrome's folder (`~/Library/Application Support/Google/Chrome/NativeMessagingHosts`),
+  not in its own.
+- macOS counts a native host as the browser that starts it. A browser with no right to
+  `~/Documents` cannot start a host that is in `~/Documents`, so the host is copied out.
+
 Give `--port` when the daemon does not listen on 4400, and `--reader <reticle-inject.js>` to use a
 local build of `@reticlehq/browser`.
 
 ## Check
 
-`test/handoff.mjs` hands a tab over in a browser of its own and proves a press on the page:
+`test/handoff.mjs` opens a tab in Dia, hands it over with the key through Reticle's desktop realm,
+and proves a fill and a press on the page. The page forbids every connection of its own:
 
 ```sh
 RETICLE_REPO=../reticle node test/handoff.mjs
 ```
 
-It needs macOS, the Accessibility permission, and a built Reticle checkout with the desktop realm.
+It needs macOS, Dia with the extension loaded, the Accessibility permission, and a built Reticle
+checkout with the desktop realm.

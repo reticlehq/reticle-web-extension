@@ -17,9 +17,13 @@ import { DEFAULT_PORT, HOST_NAME } from './host/constants.mjs';
 
 const here = fileURLToPath(new URL('.', import.meta.url));
 const support = join(homedir(), 'Library', 'Application Support');
+/** Where the host runs from: a folder that every browser may read. */
+const HOST_HOME = join(support, 'Reticle', 'web-extension');
+const CHROME_HOSTS = join(support, 'Google', 'Chrome', 'NativeMessagingHosts');
+/** Where each browser looks for a native host. Dia looks in Chrome's folder, not in its own. */
 const HOSTS_OF = {
-  dia: join(support, 'Dia', 'User Data', 'NativeMessagingHosts'),
-  chrome: join(support, 'Google', 'Chrome', 'NativeMessagingHosts'),
+  dia: CHROME_HOSTS,
+  chrome: CHROME_HOSTS,
   chromium: join(support, 'Chromium', 'NativeMessagingHosts'),
 };
 
@@ -39,14 +43,24 @@ function readerPath(given) {
   return given ?? createRequire(import.meta.url).resolve('@reticlehq/browser/inject');
 }
 
-export function install({ dir, port = DEFAULT_PORT, reader }) {
+export function install({ browser, dir = HOSTS_OF[browser ?? ''], port = DEFAULT_PORT, reader }) {
+  if (dir === undefined) {
+    throw new Error('Give a browser (dia, chrome or chromium) or the NativeMessagingHosts folder.');
+  }
   copyFileSync(readerPath(reader), join(here, 'extension', 'reticle-inject.js'));
+  // The host is copied out of this folder. macOS counts a host as the browser that starts it, and
+  // a browser with no right to ~/Documents cannot read a host that is there: Dia started it, and it
+  // ended before its first line.
+  mkdirSync(HOST_HOME, { recursive: true });
+  for (const file of ['host.mjs', 'constants.mjs']) {
+    copyFileSync(join(here, 'host', file), join(HOST_HOME, file));
+  }
   // A browser starts the host with a short PATH, so the host is started through the full path of
   // this Node.
-  const start = join(here, 'host', 'host.sh');
+  const start = join(HOST_HOME, 'host.sh');
   writeFileSync(
     start,
-    `#!/bin/sh\nexec "${process.execPath}" "${join(here, 'host', 'host.mjs')}" --port ${String(port)} "$@"\n`,
+    `#!/bin/sh\nexec "${process.execPath}" "${join(HOST_HOME, 'host.mjs')}" --port ${String(port)} "$@"\n`,
   );
   chmodSync(start, 0o755);
   const { key } = JSON.parse(readFileSync(join(here, 'extension', 'manifest.json'), 'utf8'));
@@ -77,7 +91,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(2);
   }
   const port = arg('port') === undefined ? DEFAULT_PORT : Number(arg('port'));
-  const done = install({ dir, port, reader: arg('reader') });
+  const done = install({ browser, dir, port, reader: arg('reader') });
   process.stdout.write(
     `Wrote ${done.manifest}.\nNow load ${done.extension} once in each profile: the extensions page, developer mode, "Load unpacked".\n`,
   );
