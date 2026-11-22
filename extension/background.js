@@ -3,7 +3,8 @@
 // talks to the bridge through this extension and its native host, so the page's own rules for
 // connections do not apply, and the pairing token never goes into the page.
 //
-// A tab that was handed over gets the reader again after each load, until the tab closes.
+// A tab that was handed over gets the reader again after each load, until the tab closes or a
+// second press hands it back.
 
 const HOST = 'sh.reticle.relay';
 const HANDED = 'handed';
@@ -39,6 +40,21 @@ chrome.action.onClicked.addListener(async (tab) => {
     return;
   }
   const tabs = await handedTabs();
+  // A second press hands the tab back: the reader stops, and a reload gives it no reader again.
+  // A press on the wrong tab must be undone by the same key that made it.
+  if (tabs.has(tab.id)) {
+    tabs.delete(tab.id);
+    await keep(tabs);
+    await chrome.scripting
+      .executeScript({
+        target: { tabId: tab.id },
+        world: 'MAIN',
+        func: () => globalThis.__reticleInstance?.disconnect(),
+      })
+      .catch(() => undefined);
+    await chrome.action.setBadgeText({ tabId: tab.id, text: '' });
+    return;
+  }
   tabs.add(tab.id);
   await keep(tabs);
   await giveReader(tab.id);
