@@ -10,4 +10,7 @@ globalThis.__reticleInstance?.connect({
   allowNonLocalhost: true,
   lease: true,
   token: 'set-by-the-native-host',
+  // No HUD in the page: the desktop realm's HUD shows the work of the whole computer, the page's
+  // actions with it. Two HUDs for one task was one too many.
+  present: false,
 });

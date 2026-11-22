@@ -20,9 +20,16 @@ async function keep(tabs) {
 
 async function giveReader(tabId) {
   await chrome.scripting.executeScript({ target: { tabId }, files: ['relay.js'], world: 'ISOLATED' });
+  // One reader for each page. A second copy of the reader made a second HUD and a second set of
+  // styles: a press on a tab that had one already put the HUD in the wrong place.
+  const [has] = await chrome.scripting.executeScript({
+    target: { tabId },
+    world: 'MAIN',
+    func: () => undefined !== globalThis.__reticleInstance,
+  });
   await chrome.scripting.executeScript({
     target: { tabId },
-    files: ['tunnel.js', 'reticle-inject.js', 'connect.js'],
+    files: true === has?.result ? ['connect.js'] : ['tunnel.js', 'reticle-inject.js', 'connect.js'],
     world: 'MAIN',
   });
 }
